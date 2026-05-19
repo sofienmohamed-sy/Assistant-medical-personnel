@@ -1,0 +1,10 @@
+node_modules
+dist
+lib
+build
+coverage
+playwright-report
+test-results
+.firebase
+pnpm-lock.yaml
+docs/
