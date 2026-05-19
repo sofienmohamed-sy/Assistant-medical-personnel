@@ -62,8 +62,9 @@ export default defineConfig({
     strictPort: false,
   },
   preview: {
+    host: '127.0.0.1',
     port: 4173,
-    strictPort: false,
+    strictPort: true,
   },
   build: {
     sourcemap: true,
