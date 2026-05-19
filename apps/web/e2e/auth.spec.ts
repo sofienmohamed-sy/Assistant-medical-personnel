@@ -43,4 +43,10 @@ test.describe('auth UI', () => {
     await expect(page).toHaveURL(/\/login$/);
     await expect(page.getByTestId('login-form')).toBeVisible();
   });
+
+  test('protected /onboarding route redirects to /login when signed out', async ({ page }) => {
+    await page.goto('/onboarding');
+    await expect(page).toHaveURL(/\/login$/);
+    await expect(page.getByTestId('login-form')).toBeVisible();
+  });
 });

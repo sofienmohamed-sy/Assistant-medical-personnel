@@ -18,5 +18,5 @@
       "@shared/*": ["../../packages/shared/src/*"]
     }
   },
-  "include": ["src", "tests"]
+  "include": ["src", "tests", "../../packages/shared/src"]
 }
