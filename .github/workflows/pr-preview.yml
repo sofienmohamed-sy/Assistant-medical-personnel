@@ -29,14 +29,22 @@ jobs:
       - id: gate
         name: Gate on Firebase secrets being configured
         env:
-          HAS_SA: ${{ secrets.FIREBASE_SERVICE_ACCOUNT != '' }}
-          HAS_PROJECT: ${{ secrets.FIREBASE_PROJECT_ID != '' }}
+          SA: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
+          PROJECT: ${{ secrets.FIREBASE_PROJECT_ID }}
         run: |
-          if [ "$HAS_SA" = "true" ] && [ "$HAS_PROJECT" = "true" ]; then
+          set -u
+          sa="${SA:-}"
+          project="${PROJECT:-}"
+          # Service-account secret must be non-empty JSON (must start with '{').
+          # This catches placeholder/malformed values that GitHub stores as
+          # non-empty strings but that Firebase cannot parse.
+          first_char="${sa:0:1}"
+          if [ -n "$project" ] && [ -n "$sa" ] && [ "$first_char" = "{" ]; then
             echo "skipped=false" >> "$GITHUB_OUTPUT"
+            echo "::notice::Firebase secrets look valid — preview deploy will run."
           else
             echo "skipped=true" >> "$GITHUB_OUTPUT"
-            echo "::notice::FIREBASE_SERVICE_ACCOUNT or FIREBASE_PROJECT_ID secret not set — skipping preview deploy."
+            echo "::notice::Firebase secrets missing or malformed — skipping preview deploy. (Set FIREBASE_SERVICE_ACCOUNT and FIREBASE_PROJECT_ID; the service account must be the full JSON starting with '{')"
           fi
 
       - if: steps.gate.outputs.skipped == 'false'
@@ -67,6 +75,7 @@ jobs:
       - if: steps.gate.outputs.skipped == 'false'
         id: deploy
         name: Deploy preview channel
+        continue-on-error: true
         uses: FirebaseExtended/action-hosting-deploy@v0
         with:
           repoToken: ${{ secrets.GITHUB_TOKEN }}
@@ -96,8 +105,10 @@ jobs:
       - name: Install Playwright browsers
         run: pnpm --filter web exec playwright install --with-deps chromium
 
-      - name: Build web (for fallback preview server)
-        if: needs.build-and-preview.outputs.preview_skipped == 'true'
+      # Always build locally so the Playwright fallback webServer (vite preview)
+      # has a dist/ to serve. Uses placeholders so build is reproducible even
+      # when Firebase config secrets are unset or invalid.
+      - name: Build web for E2E
         env:
           VITE_FIREBASE_API_KEY: placeholder
           VITE_FIREBASE_AUTH_DOMAIN: placeholder.firebaseapp.com
@@ -107,9 +118,11 @@ jobs:
           VITE_FIREBASE_APP_ID: '1:000000000000:web:0000000000000000000000'
         run: pnpm --filter web build
 
-      - name: Run Playwright (against preview URL when available)
+      # Use the preview URL if the deploy actually produced one; otherwise
+      # Playwright config will fall back to spawning vite preview locally.
+      - name: Run Playwright
         env:
-          PLAYWRIGHT_BASE_URL: ${{ needs.build-and-preview.outputs.preview_skipped == 'false' && needs.build-and-preview.outputs.preview_url || '' }}
+          PLAYWRIGHT_BASE_URL: ${{ needs.build-and-preview.outputs.preview_url || '' }}
         run: pnpm --filter web e2e
 
       - if: failure()
