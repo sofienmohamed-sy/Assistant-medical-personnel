@@ -1,0 +1,130 @@
+name: Deploy — main
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+concurrency:
+  group: deploy-main
+  cancel-in-progress: false
+
+env:
+  NODE_VERSION: '20'
+  PNPM_VERSION: '9.15.0'
+
+jobs:
+  deploy:
+    name: Deploy to Firebase
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    permissions:
+      contents: read
+      id-token: write
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+        with:
+          version: ${{ env.PNPM_VERSION }}
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: pnpm
+
+      - run: pnpm install --frozen-lockfile
+
+      - name: Build web
+        env:
+          VITE_FIREBASE_API_KEY: ${{ secrets.VITE_FIREBASE_API_KEY }}
+          VITE_FIREBASE_AUTH_DOMAIN: ${{ secrets.VITE_FIREBASE_AUTH_DOMAIN }}
+          VITE_FIREBASE_PROJECT_ID: ${{ secrets.VITE_FIREBASE_PROJECT_ID }}
+          VITE_FIREBASE_STORAGE_BUCKET: ${{ secrets.VITE_FIREBASE_STORAGE_BUCKET }}
+          VITE_FIREBASE_MESSAGING_SENDER_ID: ${{ secrets.VITE_FIREBASE_MESSAGING_SENDER_ID }}
+          VITE_FIREBASE_APP_ID: ${{ secrets.VITE_FIREBASE_APP_ID }}
+        run: pnpm --filter web build
+
+      - name: Build functions
+        run: pnpm --filter functions build
+
+      - name: Write service account file
+        env:
+          FIREBASE_SERVICE_ACCOUNT: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
+        run: |
+          mkdir -p "$RUNNER_TEMP/sa"
+          printf '%s' "$FIREBASE_SERVICE_ACCOUNT" > "$RUNNER_TEMP/sa/key.json"
+          echo "GOOGLE_APPLICATION_CREDENTIALS=$RUNNER_TEMP/sa/key.json" >> "$GITHUB_ENV"
+
+      - name: Sync Firebase Functions secrets from GitHub Secrets
+        env:
+          FIREBASE_PROJECT_ID: ${{ secrets.FIREBASE_PROJECT_ID }}
+          FUNCTIONS_SECRETS_LIST: ${{ vars.FUNCTIONS_SECRETS }}
+          # All secrets that COULD be synced are explicitly listed here so
+          # workflow has access. Add new ones alongside FUNCTIONS_SECRETS var.
+          SECRET_STRIPE_API_KEY: ${{ secrets.STRIPE_API_KEY }}
+        run: |
+          set -euo pipefail
+          if [ -z "${FUNCTIONS_SECRETS_LIST:-}" ]; then
+            echo "::notice::FUNCTIONS_SECRETS variable is empty — no secrets to sync."
+            exit 0
+          fi
+          IFS=',' read -ra NAMES <<< "$FUNCTIONS_SECRETS_LIST"
+          for raw in "${NAMES[@]}"; do
+            name=$(echo "$raw" | xargs)
+            [ -z "$name" ] && continue
+            var_name="SECRET_${name}"
+            value="${!var_name:-}"
+            if [ -z "$value" ]; then
+              echo "::warning::No GitHub Secret value found for '$name' (expected env var '$var_name'). Skipping."
+              continue
+            fi
+            echo "Syncing $name -> Firebase Functions Secret Manager"
+            printf '%s' "$value" | pnpm exec firebase functions:secrets:set "$name" \
+              --data-file - \
+              --force \
+              --project "$FIREBASE_PROJECT_ID"
+          done
+
+      - name: Deploy Firestore rules + indexes
+        env:
+          FIREBASE_PROJECT_ID: ${{ secrets.FIREBASE_PROJECT_ID }}
+        run: |
+          pnpm exec firebase deploy \
+            --only firestore:rules,firestore:indexes \
+            --project "$FIREBASE_PROJECT_ID" \
+            --non-interactive \
+            --force
+
+      - name: Deploy Storage rules
+        env:
+          FIREBASE_PROJECT_ID: ${{ secrets.FIREBASE_PROJECT_ID }}
+        run: |
+          pnpm exec firebase deploy \
+            --only storage \
+            --project "$FIREBASE_PROJECT_ID" \
+            --non-interactive \
+            --force
+
+      - name: Deploy Functions
+        env:
+          FIREBASE_PROJECT_ID: ${{ secrets.FIREBASE_PROJECT_ID }}
+        run: |
+          pnpm exec firebase deploy \
+            --only functions \
+            --project "$FIREBASE_PROJECT_ID" \
+            --non-interactive \
+            --force
+
+      - name: Deploy Hosting (live)
+        env:
+          FIREBASE_PROJECT_ID: ${{ secrets.FIREBASE_PROJECT_ID }}
+        run: |
+          pnpm exec firebase deploy \
+            --only hosting \
+            --project "$FIREBASE_PROJECT_ID" \
+            --non-interactive
+
+      - name: Clean up service account file
+        if: always()
+        run: rm -f "$RUNNER_TEMP/sa/key.json"
