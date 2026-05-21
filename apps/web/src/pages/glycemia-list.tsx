@@ -13,8 +13,10 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { AlertBadge } from '@/components/alerts/alert-badge';
 import { FicheDisclosure } from '@/components/alerts/fiche-disclosure';
+import { EmergencyPlanCallout } from '@/components/alerts/emergency-plan-callout';
 import { useGlycemiaMeasurements } from '@/hooks/use-measurements';
 import { useUserDoc } from '@/hooks/use-profile';
+import { useDiabeteEmergencyPlan } from '@/hooks/use-emergency-plan';
 
 const dateFormatter = new Intl.DateTimeFormat('fr-FR', {
   dateStyle: 'medium',
@@ -28,6 +30,7 @@ function formatValue(value: number): string {
 export default function GlycemiaListPage() {
   const measurements = useGlycemiaMeasurements({ max: 50 });
   const userDoc = useUserDoc();
+  const emergencyPlan = useDiabeteEmergencyPlan();
 
   // If the user has no diabète T2 active anymore (e.g. they unchecked it),
   // we still show the list, but use a conservative "B" (no hypo risk) so the
@@ -169,6 +172,16 @@ export default function GlycemiaListPage() {
                       />
                     );
                   })()}
+                  {(m.alert.level === 'level2' ||
+                    m.alert.level === 'level3a' ||
+                    m.alert.level === 'level3b') && (
+                    <EmergencyPlanCallout
+                      reasonCode={m.alert.reasonCode}
+                      plan={emergencyPlan.data}
+                      className="mt-2"
+                      testId={`glycemia-row-plan-${m.id}`}
+                    />
+                  )}
                   {m.note && (
                     <p
                       className="text-muted-foreground mt-1 text-sm"

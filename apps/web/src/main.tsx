@@ -13,6 +13,7 @@ import OnboardingPage from '@/pages/onboarding';
 import PathologiesPage from '@/pages/pathologies';
 import GlycemiaListPage from '@/pages/glycemia-list';
 import GlycemiaNewPage from '@/pages/glycemia-new';
+import DiabetePlanUrgencePage from '@/pages/diabete-plan-urgence';
 import AppHome from '@/pages/app';
 import './styles/index.css';
 
@@ -60,6 +61,14 @@ createRoot(rootElement).render(
               element={
                 <ProtectedRoute>
                   <GlycemiaNewPage />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/diabete/plan-urgence"
+              element={
+                <ProtectedRoute>
+                  <DiabetePlanUrgencePage />
                 </ProtectedRoute>
               }
             />
