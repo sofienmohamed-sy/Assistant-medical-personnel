@@ -2,11 +2,15 @@ import { Link, Navigate, useNavigate } from 'react-router-dom';
 import { LogOut, HeartPulse, Loader2, Stethoscope, Droplet } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { AlertBadge } from '@/components/alerts/alert-badge';
 import { useAuth } from '@/hooks/use-auth';
 import { useUserDoc } from '@/hooks/use-profile';
+import { useGlycemiaMeasurements } from '@/hooks/use-measurements';
 import { signOut } from '@/lib/auth';
 import {
   ASTHME_PROFILE_LABELS_FR,
+  computeGlycemiaAlert,
+  computeGlycemiaTendance,
   COUNTRY_LABELS_FR,
   DIABETE_T2_PROFILE_LABELS_FR,
   HTA_PROFILE_LABELS_FR,
@@ -141,25 +145,12 @@ export default function AppHome() {
           </section>
 
           {pathologies.diabeteT2 && (
-            <section data-testid="glycemia-quick-section" className="space-y-2">
-              <h2 className="text-foreground flex items-center gap-2 text-sm font-medium">
-                <Droplet className="text-primary h-4 w-4" aria-hidden="true" />
-                Suivi glycémie
-              </h2>
-              <div className="flex flex-wrap gap-2">
-                <Button asChild className="flex-1" data-testid="glycemia-new-cta">
-                  <Link to="/measurements/glycemia/new">Saisir une glycémie</Link>
-                </Button>
-                <Button asChild variant="outline" data-testid="glycemia-history-cta">
-                  <Link to="/measurements/glycemia">Voir l’historique</Link>
-                </Button>
-              </div>
-            </section>
+            <GlycemiaQuickSection treatmentProfile={pathologies.diabeteT2.treatmentProfile} />
           )}
 
           <p>
-            Les prochaines étapes (mesures HTA et asthme, alertes, mode médecin) seront ajoutées
-            dans les PRs à venir.
+            Les prochaines étapes (mesures HTA et asthme, mode médecin) seront ajoutées dans les PRs
+            à venir.
           </p>
           <Button
             variant="outline"
@@ -173,5 +164,56 @@ export default function AppHome() {
         </CardContent>
       </Card>
     </main>
+  );
+}
+
+interface GlycemiaQuickSectionProps {
+  treatmentProfile: import('@shared/index').DiabeteT2Profile;
+}
+
+function GlycemiaQuickSection({ treatmentProfile }: GlycemiaQuickSectionProps) {
+  // Pull the last 7 days' worth of measurements; capped tightly so the home
+  // screen stays snappy. The list page itself fetches more for full history.
+  const measurements = useGlycemiaMeasurements({ max: 14 });
+
+  const tendance = measurements.data
+    ? computeGlycemiaTendance({
+        classified: measurements.data.map((m) => ({
+          measuredAt: m.measuredAt,
+          value: m.value,
+          level: computeGlycemiaAlert({ value: m.value, moment: m.moment }, treatmentProfile).level,
+        })),
+      })
+    : null;
+
+  return (
+    <section data-testid="glycemia-quick-section" className="space-y-2">
+      <h2 className="text-foreground flex items-center gap-2 text-sm font-medium">
+        <Droplet className="text-primary h-4 w-4" aria-hidden="true" />
+        Suivi glycémie
+      </h2>
+      {tendance && tendance.totalLast7Days > 0 && (
+        <div
+          className="border-border bg-muted/40 flex flex-wrap items-center justify-between gap-2 rounded-md border px-3 py-2 text-sm"
+          data-testid="glycemia-quick-tendance"
+        >
+          <span className="text-muted-foreground">
+            <span className="text-foreground font-medium">{tendance.totalLast7Days}</span>{' '}
+            {tendance.totalLast7Days > 1 ? 'mesures' : 'mesure'} cette semaine, dont{' '}
+            <span className="text-foreground font-medium">{tendance.abnormalLast7Days}</span> hors
+            cible
+          </span>
+          <AlertBadge level={tendance.maxLevelLast7Days} compact />
+        </div>
+      )}
+      <div className="flex flex-wrap gap-2">
+        <Button asChild className="flex-1" data-testid="glycemia-new-cta">
+          <Link to="/measurements/glycemia/new">Saisir une glycémie</Link>
+        </Button>
+        <Button asChild variant="outline" data-testid="glycemia-history-cta">
+          <Link to="/measurements/glycemia">Voir l’historique</Link>
+        </Button>
+      </div>
+    </section>
   );
 }
