@@ -214,6 +214,9 @@ function GlycemiaQuickSection({ treatmentProfile }: GlycemiaQuickSectionProps) {
           <Link to="/measurements/glycemia">Voir l’historique</Link>
         </Button>
       </div>
+      <Button asChild variant="secondary" className="w-full" data-testid="symptoms-new-cta">
+        <Link to="/symptoms/new">Reporter un symptôme</Link>
+      </Button>
       <Button asChild variant="link" className="h-auto p-0 text-xs" data-testid="plan-urgence-cta">
         <Link to="/diabete/plan-urgence">Mon plan d&apos;urgence personnalisé →</Link>
       </Button>
