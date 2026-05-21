@@ -62,11 +62,7 @@ export default function GlycemiaNewPage() {
   async function onSubmit(values: GlycemiaMeasurementInput) {
     setSubmissionError(null);
     try {
-      await addMutation.mutateAsync({
-        ...values,
-        // Drop empty optional note so we don't store ""
-        note: values.note?.trim() ? values.note.trim() : undefined,
-      });
+      await addMutation.mutateAsync(values);
       navigate('/measurements/glycemia', { replace: true });
     } catch (err) {
       setSubmissionError(
