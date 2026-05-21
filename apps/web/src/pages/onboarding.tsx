@@ -51,7 +51,7 @@ export default function OnboardingPage() {
     setSubmissionError(null);
     try {
       await upsert.mutateAsync(values);
-      navigate('/app', { replace: true });
+      navigate('/pathologies', { replace: true });
     } catch (err) {
       setSubmissionError(
         err instanceof Error

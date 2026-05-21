@@ -1,24 +1,31 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import type { PatientProfileInput } from '@shared/profile';
-import { fetchProfile, upsertProfile } from '@/lib/profile';
+import type { PathologiesFormInput, PatientProfileInput } from '@shared/index';
+import { fetchUserDoc, upsertPathologies, upsertProfile, type UserDoc } from '@/lib/profile';
 import { useAuth } from '@/hooks/use-auth';
 
-const profileKey = (uid: string | undefined) => ['profile', uid ?? 'anonymous'] as const;
+const userDocKey = (uid: string | undefined) => ['user-doc', uid ?? 'anonymous'] as const;
 
-export function useProfile() {
+export function useUserDoc() {
   const { user, status } = useAuth();
   const uid = user?.uid;
 
-  const query = useQuery({
-    queryKey: profileKey(uid),
+  return useQuery<UserDoc>({
+    queryKey: userDocKey(uid),
     queryFn: () => {
-      if (!uid) throw new Error('Cannot fetch profile while signed out.');
-      return fetchProfile(uid);
+      if (!uid) throw new Error('Cannot fetch user doc while signed out.');
+      return fetchUserDoc(uid);
     },
     enabled: status === 'signed-in' && Boolean(uid),
   });
+}
 
-  return query;
+// Backwards-compatible alias for code that only needs the profile half.
+export function useProfile() {
+  const query = useUserDoc();
+  return {
+    ...query,
+    data: query.data?.profile ?? null,
+  } as const;
 }
 
 export function useUpsertProfile() {
@@ -32,7 +39,23 @@ export function useUpsertProfile() {
       await upsertProfile(uid, input);
     },
     onSuccess: () => {
-      void queryClient.invalidateQueries({ queryKey: profileKey(uid) });
+      void queryClient.invalidateQueries({ queryKey: userDocKey(uid) });
+    },
+  });
+}
+
+export function useUpsertPathologies() {
+  const { user } = useAuth();
+  const uid = user?.uid;
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (input: PathologiesFormInput) => {
+      if (!uid) throw new Error('Cannot save pathologies while signed out.');
+      await upsertPathologies(uid, input);
+    },
+    onSuccess: () => {
+      void queryClient.invalidateQueries({ queryKey: userDocKey(uid) });
     },
   });
 }
