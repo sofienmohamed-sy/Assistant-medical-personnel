@@ -4,6 +4,7 @@ import {
   ALERT_LEVEL_LABELS_FR,
   computeGlycemiaAlert,
   computeGlycemiaTendance,
+  getFicheForReason,
   GLYCEMIA_MOMENT_LABELS_FR,
   type AlertLevel,
   type DiabeteT2Profile,
@@ -11,6 +12,7 @@ import {
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { AlertBadge } from '@/components/alerts/alert-badge';
+import { FicheDisclosure } from '@/components/alerts/fiche-disclosure';
 import { useGlycemiaMeasurements } from '@/hooks/use-measurements';
 import { useUserDoc } from '@/hooks/use-profile';
 
@@ -156,6 +158,17 @@ export default function GlycemiaListPage() {
                       <span className="text-muted-foreground">{m.alert.recommendation}</span>
                     </p>
                   )}
+                  {(() => {
+                    const fiche = getFicheForReason(m.alert.reasonCode);
+                    if (!fiche) return null;
+                    return (
+                      <FicheDisclosure
+                        fiche={fiche}
+                        className="mt-2"
+                        testId={`glycemia-row-fiche-${m.id}`}
+                      />
+                    );
+                  })()}
                   {m.note && (
                     <p
                       className="text-muted-foreground mt-1 text-sm"
