@@ -248,6 +248,9 @@ function GlycemiaQuickSection({ treatmentProfile }: GlycemiaQuickSectionProps) {
           <Link to="/diabete/equilibrium">Pourquoi maintenant&nbsp;? →</Link>
         </Button>
       </div>
+      <Button asChild variant="outline" className="w-full" data-testid="rapport-cta">
+        <Link to="/diabete/rapport">Préparer un rapport pour ton médecin</Link>
+      </Button>
     </section>
   );
 }
