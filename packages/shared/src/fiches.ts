@@ -73,11 +73,14 @@ Au-dessus de 3 g/L, surtout avec des symptômes (soif intense, nausées, vomisse
     sources: SOURCES_HAS_SFD,
   },
 
-  // §A.11.3 — adapted; covers both the resucrage zone and the severe-hypo path.
+  // §A.11.3 — reframed in descriptive mood. The app never prescribes a
+  // treatment in its own voice (spec §2.1); the educational card describes
+  // the standard HAS protocol as reference and routes the user to their
+  // own plan d'urgence personnel.
   'glycemia-hypoglycemia': {
     id: 'glycemia-hypoglycemia',
     title: 'Comprendre une hypoglycémie',
-    tagline: 'Pourquoi 0,70 g/L est le seuil de resucrage et comment réagir.',
+    tagline: 'Pourquoi 0,70 g/L est un seuil clé et où en parler avec ton médecin.',
     sections: [
       {
         question: 'Qu’est-ce qu’une hypoglycémie ?',
@@ -97,26 +100,30 @@ Elle concerne surtout les patients sous insuline ou sous sulfamides hypoglycémi
       },
       {
         question: 'Les différents niveaux',
-        body: `• Hypoglycémie modérée (0,50 – 0,70 g/L) : sueurs, tremblements, faim, palpitations. Resucrage rapide suffit.
-• Hypoglycémie sévère (< 0,50 g/L) : confusion, vision floue, difficultés à agir. Tu peux avoir besoin d’aide pour resucrer.
-• Hypoglycémie très sévère : troubles de la conscience, convulsions, coma. C’est une urgence vitale — appelle le 15.`,
+        body: `• Modérée (0,50 – 0,70 g/L) : sueurs, tremblements, faim, palpitations. Reste consciente·e et capable d’agir.
+• Sévère (< 0,50 g/L) : confusion, vision floue, difficultés à agir. L’aide d’un proche peut être nécessaire.
+• Très sévère : troubles de la conscience, convulsions, coma. C’est une urgence vitale — appelle le 15.`,
       },
       {
-        question: 'Que faire maintenant ?',
-        body: `1) 15 g de sucre rapide : 3 morceaux de sucre, ou un verre de jus de fruit, ou une cuillère à soupe de miel.
-2) Repos, ne pas conduire, ne pas faire d’effort.
-3) Recontrôler la glycémie à 15 minutes.
-4) Si toujours < 0,70 g/L : répéter le resucrage rapide.
-5) Si toujours bas après deux resucrages, ou si tu te sens vraiment mal : appelle le 15 ou ton médecin.
-6) Après normalisation, prends une collation à index glycémique bas (pain + fromage par exemple) pour stabiliser.
-7) Note l’épisode pour en parler en consultation.`,
+        question: 'Le modèle HAS de référence',
+        body: `À titre informatif — les étapes ci-dessous décrivent le protocole HAS standard. Elles ne remplacent pas un plan d’urgence personnel construit avec ton médecin (qui prend en compte ton traitement, ton entourage et ton environnement).
+
+Le protocole HAS standard prévoit :
+1) Une prise immédiate de 15 g de sucre rapide (équivalents : 3 morceaux de sucre, un verre de jus de fruit, une cuillère à soupe de miel).
+2) Repos — pas de conduite, pas d’effort.
+3) Recontrôle de la glycémie à 15 minutes.
+4) Une nouvelle prise si la glycémie reste sous 0,70 g/L.
+5) En cas de doute, de signes inhabituels, ou si la valeur reste basse après deux prises : appel du 15 ou du médecin.
+6) Après normalisation, une collation à index glycémique bas (pain + fromage, par exemple) pour stabiliser.
+7) Noter l’épisode pour en parler en consultation.
+
+Construis ton plan d’urgence personnel à partir de ces étapes en les adaptant avec ton médecin.`,
       },
       {
-        question: 'Comment l’éviter à l’avenir',
+        question: 'Comment limiter le risque de récurrence',
         body: `• Respecte les horaires de prise de médicament et de repas.
-• Garde toujours du sucre rapide sur toi (sucre, gel glucosé, jus).
-• Adapte ton traitement quand une activité physique est prévue (à voir avec ton médecin).
-• Discute avec ton médecin si les épisodes se répètent : c’est un signal que la dose peut être à revoir.`,
+• Discute avec ton médecin de l’organisation à avoir quand une activité physique est prévue.
+• Si les épisodes se répètent, parle-en à ton médecin : c’est un signal que ta prise en charge peut être à revoir.`,
       },
     ],
     sources: SOURCES_HAS_FFD,

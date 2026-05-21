@@ -52,17 +52,24 @@ export interface StoredDiabeteEmergencyPlan extends DiabeteEmergencyPlanInput {
   updatedAt: Date;
 }
 
-// Default scaffolding — surfaced as placeholders in the editor and as the
-// fallback recommendation text in the alert UI when the user hasn't filled
-// anything in. All values from design doc §A.6.
-export const DIABETE_EMERGENCY_PLAN_HAS_DEFAULTS = {
-  hypoSugarSource: '3 morceaux de sucre OU 1 verre de jus de fruit (15 g de sucre rapide)',
+// Hints used as <input> placeholders in the plan-urgence editor. They are
+// deliberately framed as prompts ("ce que ton médecin te recommande de
+// faire") rather than concrete therapeutic actions, since the app never
+// prescribes treatment in its own voice (spec §2.1). The standard HAS
+// protocol is reachable through the educational fiches, where it is
+// presented as reference, not as a directive.
+export const DIABETE_EMERGENCY_PLAN_HINTS_FR = {
+  hypoSugarSource: 'L’action immédiate convenue avec ton médecin',
   hypoQuickContact: 'Un proche à appeler en cas de malaise',
   hyperRecheckMinutes: 15,
   hyperMedicalContact: 'Médecin traitant ou diabétologue',
   ketoEmergencyNumber: '15',
   ketoNearestEmergencyRoom: 'Service d’urgences le plus proche',
 } as const;
+
+// Backwards-compatible alias — kept until consumers migrate to the renamed
+// constant. Same values.
+export const DIABETE_EMERGENCY_PLAN_HAS_DEFAULTS = DIABETE_EMERGENCY_PLAN_HINTS_FR;
 
 /**
  * Pick the relevant slice of the plan for a given alert reason code.

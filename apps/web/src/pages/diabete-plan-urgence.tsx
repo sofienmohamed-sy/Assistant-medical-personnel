@@ -90,9 +90,10 @@ export default function DiabetePlanUrgencePage() {
           </div>
           <CardTitle>Mon plan d&apos;urgence — Diabète</CardTitle>
           <CardDescription>
-            Ces informations apparaîtront sous les alertes de glycémie critiques. Tout est
-            facultatif&nbsp;: tu peux ne renseigner que ce qui te semble utile. Les valeurs par
-            défaut suggérées suivent le modèle HAS.
+            C&apos;est <em>ton</em> plan&nbsp;: construis-le avec ton médecin. Ces informations
+            apparaîtront sous les alertes de glycémie critiques. L&apos;app ne te recommande jamais
+            de traitement&nbsp;; elle se contente de t&apos;afficher ce que tu as toi-même écrit
+            ici. Tout est facultatif.
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -133,7 +134,8 @@ export default function DiabetePlanUrgencePage() {
                         />
                       </FormControl>
                       <FormDescription>
-                        Où trouver 15 g de sucre rapide chez toi et au travail.
+                        L’action que ton médecin t’a indiquée en cas d’hypoglycémie (l’app ne
+                        prescrit rien&nbsp;: c’est toi qui décris ton propre protocole).
                       </FormDescription>
                       <FormMessage />
                     </FormItem>

@@ -65,7 +65,11 @@ export function computeGlycemiaAlert(
       title: 'Urgence vitale — hypoglycémie sévère',
       message: `Glycémie à ${v} g/L : c’est très en-dessous du seuil de sécurité (0,70 g/L).`,
       recommendation:
-        'Applique ton plan d’urgence resucrage (15 g de sucre rapide), reste assis·e, ne conduis pas. Si tu te sens mal ou que tu as des troubles de la conscience, appelle le 15 immédiatement.',
+        // Per spec §2.1 the app never prescribes treatment: it routes the
+        // patient to their own plan d'urgence + emergency services. The
+        // specific actions (sugar source, doses, etc.) belong to the plan
+        // the user has built with their doctor.
+        'Consulte ton plan d’urgence personnel. Mets-toi en sécurité : reste assis·e, ne conduis pas. Si tu te sens mal ou si tu as des troubles de la conscience, appelle le 15 immédiatement.',
       sources: SOURCES_HAS_SFD,
     };
   }
@@ -78,7 +82,7 @@ export function computeGlycemiaAlert(
       title: 'Urgence vitale — hyperglycémie sévère',
       message: `Glycémie à ${v} g/L : valeur très élevée évoquant un risque de décompensation acidocétosique.`,
       recommendation:
-        'Si tu as des nausées, des vomissements, une haleine inhabituelle ou une respiration rapide, appelle le 15. Sinon, applique ton plan d’urgence et contacte ton médecin sans tarder.',
+        'Si tu as des nausées, des vomissements, une haleine inhabituelle ou une respiration rapide, appelle le 15. Sinon, consulte ton plan d’urgence personnel et contacte ton médecin sans tarder.',
       sources: SOURCES_HAS_SFD,
     };
   }
@@ -90,10 +94,10 @@ export function computeGlycemiaAlert(
     return {
       level: 'level3a',
       reasonCode: 'hypo-resucrage',
-      title: 'Hypoglycémie — plan d’urgence',
-      message: `Glycémie à ${v} g/L : en-dessous du seuil de resucrage (0,70 g/L) chez un patient sous traitement à risque d’hypoglycémie.`,
+      title: 'Hypoglycémie — applique ton plan personnel',
+      message: `Glycémie à ${v} g/L : en-dessous du seuil de 0,70 g/L chez un patient sous traitement à risque d’hypoglycémie.`,
       recommendation:
-        'Resucre-toi maintenant : 15 g de sucre rapide (3 morceaux, 1 verre de jus de fruit). Reste assis·e, recontrôle dans 15 minutes. Si toujours bas après 2 resucrages : appelle le 15 ou ton médecin.',
+        'Consulte ton plan d’urgence personnel. Mets-toi en sécurité : reste assis·e, ne conduis pas. Mesure à nouveau ta glycémie selon les indications de ton plan. En cas de doute ou si tu te sens mal, appelle ton médecin ou le 15.',
       sources: SOURCES_HAS_SFD,
     };
   }

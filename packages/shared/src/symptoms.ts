@@ -177,7 +177,9 @@ const HYPO_RISK_PROFILES: ReadonlySet<DiabeteT2Profile> = new Set(['C', 'D', 'E'
  *   - Acidocétose signs (≥ 2 in category) → level 3a, applique le plan
  *     d'urgence et contacte le médecin aujourd'hui.
  *   - Hypo signs:
- *       · ≥ 2 chez profil à risque (C/D/E) → level 3a, resucrage immédiat.
+ *       · ≥ 2 chez profil à risque (C/D/E) → level 3a, applique ton plan
+ *         d'urgence personnel (l'app ne prescrit jamais le traitement —
+ *         spec §2.1, only references the user's own plan + safety + 15).
  *       · 1 chez profil à risque → level 2, mesure ta glycémie maintenant.
  *       · Chez profil A/B : level 1 (rare mais possible), encourage mesure.
  *   - Hyperglycémie chronique ≥ 3 symptômes → level 2, consulte le médecin.
@@ -260,16 +262,20 @@ export function computeDiabeteSymptomTriage(
     return {
       level: 'level3a',
       reasonCode: 'symptom-hypo-multi',
-      title: 'Hypoglycémie probable — resucrage immédiat',
+      title: 'Hypoglycémie probable — applique ton plan personnel',
       message:
-        'Plusieurs signes d’hypoglycémie chez un patient sous traitement à risque. À traiter sans délai.',
+        'Plusieurs signes d’hypoglycémie chez un patient sous traitement à risque. À prendre au sérieux sans délai.',
       recommendation:
-        'Prends 15 g de sucre rapide (3 morceaux, 1 verre de jus de fruit). Reste assis·e, recontrôle ta glycémie dans 15 minutes. Si toujours bas après 2 resucrages : appelle le 15 ou ton médecin.',
+        // Per spec §2.1, the app never tells the patient to take a specific
+        // therapeutic action. It points to the personal plan d'urgence (which
+        // the user has built with their doctor), to safety, and to emergency
+        // services in case of doubt.
+        'Consulte ton plan d’urgence personnel. Mets-toi en sécurité : reste assis·e, ne conduis pas. Mesure ta glycémie si tu peux. En cas de doute ou si tu te sens mal, appelle ton médecin ou le 15.',
       nextActions: [
-        'Resucre-toi maintenant (15 g de sucre rapide).',
+        'Consulte ton plan d’urgence personnel.',
         'Reste assis·e, ne conduis pas.',
         'Mesure ta glycémie si tu peux.',
-        'Recontrôle dans 15 minutes.',
+        'En cas de doute, appelle ton médecin ou le 15.',
       ],
       sources: SOURCES_HAS_SFD,
     };
@@ -284,8 +290,8 @@ export function computeDiabeteSymptomTriage(
       message:
         'Un signe évoquant une hypoglycémie chez un patient sous traitement à risque. À vérifier sans attendre.',
       recommendation:
-        'Mesure ta glycémie maintenant. Si < 0,70 g/L, applique ton plan d’urgence resucrage. Si normal, surveille la prochaine heure.',
-      nextActions: ['Mesure ta glycémie maintenant.', 'Garde du sucre rapide à portée.'],
+        'Mesure ta glycémie maintenant. Si elle est en-dessous de ta cible, consulte ton plan d’urgence personnel. Sinon, surveille la prochaine heure.',
+      nextActions: ['Mesure ta glycémie maintenant.', 'Garde ton plan d’urgence à portée.'],
       sources: SOURCES_HAS_SFD,
     };
   }
