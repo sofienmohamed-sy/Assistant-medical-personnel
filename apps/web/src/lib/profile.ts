@@ -7,7 +7,20 @@ import {
   type DocumentReference,
   type Firestore,
 } from 'firebase/firestore';
-import type { PatientProfile, PatientProfileInput } from '@shared/profile';
+import type {
+  ActivePathologies,
+  AsthmeProfile,
+  DiabeteT2Profile,
+  HtaProfile,
+  PatientProfile,
+  PatientProfileInput,
+  PathologiesFormInput,
+} from '@shared/index';
+import {
+  ASTHME_PROFILES,
+  DIABETE_T2_PROFILES,
+  HTA_PROFILES,
+} from '@shared/pathologies';
 import { db } from '@/lib/firebase';
 
 function requireDb(): Firestore {
@@ -29,35 +42,86 @@ function toDate(value: unknown): Date {
   return new Date();
 }
 
-export async function fetchProfile(uid: string): Promise<PatientProfile | null> {
+function isOneOf<T extends readonly string[]>(value: unknown, options: T): value is T[number] {
+  return typeof value === 'string' && (options as readonly string[]).includes(value);
+}
+
+function parsePathologies(raw: unknown): ActivePathologies {
+  if (!raw || typeof raw !== 'object') return {};
+  const r = raw as Record<string, unknown>;
+  const out: ActivePathologies = {};
+
+  const diabete = r.diabeteT2 as Record<string, unknown> | undefined;
+  if (diabete && isOneOf(diabete.treatmentProfile, DIABETE_T2_PROFILES)) {
+    out.diabeteT2 = {
+      treatmentProfile: diabete.treatmentProfile as DiabeteT2Profile,
+      addedAt: toDate(diabete.addedAt),
+    };
+  }
+
+  const hta = r.hta as Record<string, unknown> | undefined;
+  if (hta && isOneOf(hta.treatmentProfile, HTA_PROFILES)) {
+    out.hta = {
+      treatmentProfile: hta.treatmentProfile as HtaProfile,
+      addedAt: toDate(hta.addedAt),
+    };
+  }
+
+  const asthme = r.asthme as Record<string, unknown> | undefined;
+  if (asthme && isOneOf(asthme.treatmentProfile, ASTHME_PROFILES)) {
+    out.asthme = {
+      treatmentProfile: asthme.treatmentProfile as AsthmeProfile,
+      addedAt: toDate(asthme.addedAt),
+    };
+  }
+
+  return out;
+}
+
+export interface UserDoc {
+  profile: PatientProfile | null;
+  pathologies: ActivePathologies;
+  pathologiesReviewedAt: Date | null;
+}
+
+export async function fetchUserDoc(uid: string): Promise<UserDoc> {
   const snapshot = await getDoc(profileDocRef(uid));
   if (!snapshot.exists()) {
-    return null;
+    return { profile: null, pathologies: {}, pathologiesReviewedAt: null };
   }
   const data = snapshot.data();
-  // The profile is considered "complete" only when all required fields are present.
-  // Until then we report null so the UI sends the user to onboarding.
-  if (
-    typeof data.prenom !== 'string' ||
-    typeof data.nom !== 'string' ||
-    typeof data.dateOfBirth !== 'string' ||
-    typeof data.countryOfResidence !== 'string' ||
-    typeof data.countryOfOrigin !== 'string' ||
-    typeof data.profession !== 'string'
-  ) {
-    return null;
-  }
+  const profileComplete =
+    typeof data.prenom === 'string' &&
+    typeof data.nom === 'string' &&
+    typeof data.dateOfBirth === 'string' &&
+    typeof data.countryOfResidence === 'string' &&
+    typeof data.countryOfOrigin === 'string' &&
+    typeof data.profession === 'string';
+
   return {
-    uid,
-    prenom: data.prenom,
-    nom: data.nom,
-    dateOfBirth: data.dateOfBirth,
-    countryOfResidence: data.countryOfResidence,
-    countryOfOrigin: data.countryOfOrigin,
-    profession: data.profession,
-    createdAt: toDate(data.createdAt),
-    updatedAt: toDate(data.updatedAt),
-  } as PatientProfile;
+    profile: profileComplete
+      ? ({
+          uid,
+          prenom: data.prenom,
+          nom: data.nom,
+          dateOfBirth: data.dateOfBirth,
+          countryOfResidence: data.countryOfResidence,
+          countryOfOrigin: data.countryOfOrigin,
+          profession: data.profession,
+          createdAt: toDate(data.createdAt),
+          updatedAt: toDate(data.updatedAt),
+        } as PatientProfile)
+      : null,
+    pathologies: parsePathologies(data.pathologies),
+    pathologiesReviewedAt: data.pathologiesReviewedAt
+      ? toDate(data.pathologiesReviewedAt)
+      : null,
+  };
+}
+
+export async function fetchProfile(uid: string): Promise<PatientProfile | null> {
+  const doc = await fetchUserDoc(uid);
+  return doc.profile;
 }
 
 export async function upsertProfile(uid: string, input: PatientProfileInput): Promise<void> {
@@ -67,6 +131,45 @@ export async function upsertProfile(uid: string, input: PatientProfileInput): Pr
       ...input,
       updatedAt: serverTimestamp(),
       createdAt: serverTimestamp(),
+    },
+    { merge: true },
+  );
+}
+
+export async function upsertPathologies(
+  uid: string,
+  input: PathologiesFormInput,
+): Promise<void> {
+  // Build the storage shape: drop entries that the user unchecked, stamp each
+  // active one with its current treatment profile + an addedAt timestamp. We
+  // overwrite the whole `pathologies` map on purpose so unchecks actually take
+  // effect (a merge:true with undefined wouldn't delete keys).
+  const pathologies: Record<string, unknown> = {};
+  if (input.diabeteT2) {
+    pathologies.diabeteT2 = {
+      treatmentProfile: input.diabeteT2.treatmentProfile,
+      addedAt: serverTimestamp(),
+    };
+  }
+  if (input.hta) {
+    pathologies.hta = {
+      treatmentProfile: input.hta.treatmentProfile,
+      addedAt: serverTimestamp(),
+    };
+  }
+  if (input.asthme) {
+    pathologies.asthme = {
+      treatmentProfile: input.asthme.treatmentProfile,
+      addedAt: serverTimestamp(),
+    };
+  }
+
+  await setDoc(
+    profileDocRef(uid),
+    {
+      pathologies,
+      pathologiesReviewedAt: serverTimestamp(),
+      updatedAt: serverTimestamp(),
     },
     { merge: true },
   );

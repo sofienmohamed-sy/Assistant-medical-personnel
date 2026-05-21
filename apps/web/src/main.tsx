@@ -10,6 +10,7 @@ import LoginPage from '@/pages/login';
 import SignupPage from '@/pages/signup';
 import ForgotPasswordPage from '@/pages/forgot-password';
 import OnboardingPage from '@/pages/onboarding';
+import PathologiesPage from '@/pages/pathologies';
 import AppHome from '@/pages/app';
 import './styles/index.css';
 
@@ -33,6 +34,14 @@ createRoot(rootElement).render(
               element={
                 <ProtectedRoute>
                   <OnboardingPage />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/pathologies"
+              element={
+                <ProtectedRoute>
+                  <PathologiesPage />
                 </ProtectedRoute>
               }
             />
