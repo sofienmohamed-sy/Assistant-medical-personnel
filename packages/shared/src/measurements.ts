@@ -1,8 +1,9 @@
 import { z } from 'zod';
 
-// Generic measurement type discriminator. v1 only ships glycémie; HTA
-// automesure and asthme SABA counts come in follow-up PRs.
-export const MEASUREMENT_TYPES = ['glycemia'] as const;
+// Generic measurement type discriminator. v1 covers glycémie and HbA1c for
+// diabète T2. HTA automesure and asthme SABA counts come later (out of
+// scope per the current session's web-only / diabète-only rule).
+export const MEASUREMENT_TYPES = ['glycemia', 'hba1c'] as const;
 export type MeasurementType = (typeof MEASUREMENT_TYPES)[number];
 
 // Glycémie measurement context. The "moment" drives which clinical threshold
@@ -66,3 +67,81 @@ export interface StoredMeasurement extends GlycemiaMeasurementInput {
 
 export const GLYCEMIA_MIN = MIN_GLYCEMIA_G_PER_L;
 export const GLYCEMIA_MAX = MAX_GLYCEMIA_G_PER_L;
+
+// ---------------------------------------------------------------------------
+// HbA1c (lab result, % units)
+// ---------------------------------------------------------------------------
+//
+// Per design doc §A.2:
+//   - HbA1c population non-diabétique : < 5,7 %
+//   - Cible diabète T2 standard : < 7 %
+//   - Cible diabète T2 récent, sans antécédents CV, espérance vie > 15 ans : ≤ 6,5 %
+//   - Cible personne âgée fragile / antécédents CV : ≤ 8 %
+// The personal target is set by the user's doctor — we don't recommend one,
+// we just let the user record it for context.
+
+const MIN_HBA1C_PERCENT = 4; // implausibly low
+const MAX_HBA1C_PERCENT = 20; // very severe / lab error territory
+
+export const HBA1C_MIN = MIN_HBA1C_PERCENT;
+export const HBA1C_MAX = MAX_HBA1C_PERCENT;
+
+export const hba1cMeasurementSchema = z.object({
+  pathologyType: z.literal('diabeteT2'),
+  measurementType: z.literal('hba1c'),
+  value: z
+    .number({ invalid_type_error: 'Valeur invalide.' })
+    .finite('Valeur invalide.')
+    .min(MIN_HBA1C_PERCENT, `Valeur trop basse (min ${MIN_HBA1C_PERCENT} %).`)
+    .max(MAX_HBA1C_PERCENT, `Valeur trop haute (max ${MAX_HBA1C_PERCENT} %).`),
+  unit: z.literal('%'),
+  measuredAt: isoDateTime,
+  labName: z
+    .string()
+    .trim()
+    .max(100, 'Nom du laboratoire trop long (max 100 caractères).')
+    .optional(),
+  note: z.string().trim().max(500, 'Note trop longue (max 500 caractères).').optional(),
+});
+export type HbA1cMeasurementInput = z.infer<typeof hba1cMeasurementSchema>;
+
+export interface StoredHbA1cMeasurement extends HbA1cMeasurementInput {
+  id: string;
+  createdAt: Date;
+  measuredAt: string;
+}
+
+/**
+ * Classify an HbA1c reading against the user's personal target. The
+ * categories below are descriptive, not prescriptive — they explain how
+ * the new value compares to the target, never tell the user what to do
+ * about it. The personal target itself is set by the user (defaults are
+ * empty: we never recommend a specific target).
+ */
+export type HbA1cBucket =
+  | 'below-target'
+  | 'at-target'
+  | 'above-target'
+  | 'far-above-target'
+  | 'unknown';
+
+export const HBA1C_BUCKET_LABELS_FR: Record<HbA1cBucket, string> = {
+  'below-target': 'Sous ta cible',
+  'at-target': 'Dans ta cible',
+  'above-target': 'Au-dessus de ta cible',
+  'far-above-target': 'Nettement au-dessus de ta cible',
+  unknown: 'Pas encore de cible définie',
+};
+
+export function classifyHbA1c(
+  value: number,
+  personalTargetPercent: number | null | undefined,
+): HbA1cBucket {
+  if (personalTargetPercent == null) return 'unknown';
+  // 0.5 % of headroom around the target ≈ the variability of a routine lab
+  // — anything within that band is "at-target".
+  if (value < personalTargetPercent - 0.5) return 'below-target';
+  if (value <= personalTargetPercent) return 'at-target';
+  if (value <= personalTargetPercent + 1.5) return 'above-target';
+  return 'far-above-target';
+}
