@@ -53,12 +53,17 @@ describe('computeDiabeteSymptomTriage — acidocétose', () => {
 });
 
 describe('computeDiabeteSymptomTriage — hypoglycémie', () => {
-  it('multiple hypo signs at hypo-risk profile = level 3a (resucrage)', () => {
+  it('multiple hypo signs at hypo-risk profile = level 3a, routed to personal plan', () => {
+    // Per spec §2.1 the engine must NOT prescribe a treatment in its own
+    // voice; it points the patient at their own plan d'urgence personnel
+    // and at safety / emergency services.
     for (const p of ['C', 'D', 'E'] as const) {
       const r = triage(['hypo:sweats', 'hypo:tremor'], p);
       expect(r.level).toBe('level3a');
       expect(r.reasonCode).toBe('symptom-hypo-multi');
-      expect(r.recommendation).toMatch(/sucre rapide/);
+      expect(r.recommendation).toMatch(/plan d’urgence personnel/i);
+      expect(r.recommendation).not.toMatch(/sucre rapide/i);
+      expect(r.recommendation).not.toMatch(/resucre-toi/i);
     }
   });
 
