@@ -1,5 +1,5 @@
 import { Link, Navigate, useNavigate } from 'react-router-dom';
-import { LogOut, HeartPulse, Loader2, Stethoscope } from 'lucide-react';
+import { LogOut, HeartPulse, Loader2, Stethoscope, Droplet } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { useAuth } from '@/hooks/use-auth';
@@ -140,9 +140,26 @@ export default function AppHome() {
             </Button>
           </section>
 
+          {pathologies.diabeteT2 && (
+            <section data-testid="glycemia-quick-section" className="space-y-2">
+              <h2 className="text-foreground flex items-center gap-2 text-sm font-medium">
+                <Droplet className="text-primary h-4 w-4" aria-hidden="true" />
+                Suivi glycémie
+              </h2>
+              <div className="flex flex-wrap gap-2">
+                <Button asChild className="flex-1" data-testid="glycemia-new-cta">
+                  <Link to="/measurements/glycemia/new">Saisir une glycémie</Link>
+                </Button>
+                <Button asChild variant="outline" data-testid="glycemia-history-cta">
+                  <Link to="/measurements/glycemia">Voir l’historique</Link>
+                </Button>
+              </div>
+            </section>
+          )}
+
           <p>
-            Ton espace est prêt. Les prochaines étapes (saisie quotidienne, alertes, mode médecin)
-            seront ajoutées dans les PRs à venir.
+            Les prochaines étapes (mesures HTA et asthme, alertes, mode médecin) seront ajoutées
+            dans les PRs à venir.
           </p>
           <Button
             variant="outline"

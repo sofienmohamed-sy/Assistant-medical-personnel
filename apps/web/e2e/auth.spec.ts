@@ -55,4 +55,13 @@ test.describe('auth UI', () => {
     await expect(page).toHaveURL(/\/login$/);
     await expect(page.getByTestId('login-form')).toBeVisible();
   });
+
+  test('protected /measurements/glycemia routes redirect to /login when signed out', async ({
+    page,
+  }) => {
+    await page.goto('/measurements/glycemia');
+    await expect(page).toHaveURL(/\/login$/);
+    await page.goto('/measurements/glycemia/new');
+    await expect(page).toHaveURL(/\/login$/);
+  });
 });

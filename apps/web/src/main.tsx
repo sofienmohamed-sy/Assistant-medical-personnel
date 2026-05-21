@@ -11,6 +11,8 @@ import SignupPage from '@/pages/signup';
 import ForgotPasswordPage from '@/pages/forgot-password';
 import OnboardingPage from '@/pages/onboarding';
 import PathologiesPage from '@/pages/pathologies';
+import GlycemiaListPage from '@/pages/glycemia-list';
+import GlycemiaNewPage from '@/pages/glycemia-new';
 import AppHome from '@/pages/app';
 import './styles/index.css';
 
@@ -42,6 +44,22 @@ createRoot(rootElement).render(
               element={
                 <ProtectedRoute>
                   <PathologiesPage />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/measurements/glycemia"
+              element={
+                <ProtectedRoute>
+                  <GlycemiaListPage />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/measurements/glycemia/new"
+              element={
+                <ProtectedRoute>
+                  <GlycemiaNewPage />
                 </ProtectedRoute>
               }
             />
