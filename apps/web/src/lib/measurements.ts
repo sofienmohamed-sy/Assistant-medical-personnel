@@ -43,10 +43,24 @@ export async function addGlycemiaMeasurement(
   uid: string,
   input: GlycemiaMeasurementInput,
 ): Promise<void> {
-  await addDoc(measurementsCol(uid), {
-    ...input,
+  // Build the payload explicitly. Firestore's addDoc rejects fields whose
+  // value is `undefined`, so we only include `note` when the caller provided
+  // a non-empty one. Omitting the key entirely is different from setting it
+  // to undefined: the latter throws "Unsupported field value: undefined".
+  const payload: Record<string, unknown> = {
+    pathologyType: input.pathologyType,
+    measurementType: input.measurementType,
+    unit: input.unit,
+    value: input.value,
+    moment: input.moment,
+    measuredAt: input.measuredAt,
     createdAt: serverTimestamp(),
-  });
+  };
+  const trimmedNote = input.note?.trim();
+  if (trimmedNote) {
+    payload.note = trimmedNote;
+  }
+  await addDoc(measurementsCol(uid), payload);
 }
 
 export async function listGlycemiaMeasurements(
