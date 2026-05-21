@@ -217,9 +217,24 @@ function GlycemiaQuickSection({ treatmentProfile }: GlycemiaQuickSectionProps) {
       <Button asChild variant="secondary" className="w-full" data-testid="symptoms-new-cta">
         <Link to="/symptoms/new">Reporter un symptôme</Link>
       </Button>
-      <Button asChild variant="link" className="h-auto p-0 text-xs" data-testid="plan-urgence-cta">
-        <Link to="/diabete/plan-urgence">Mon plan d&apos;urgence personnalisé →</Link>
-      </Button>
+      <div className="flex flex-wrap items-center justify-between gap-2 text-xs">
+        <Button
+          asChild
+          variant="link"
+          className="h-auto p-0 text-xs"
+          data-testid="plan-urgence-cta"
+        >
+          <Link to="/diabete/plan-urgence">Mon plan d&apos;urgence personnalisé →</Link>
+        </Button>
+        <Button
+          asChild
+          variant="link"
+          className="text-muted-foreground h-auto p-0 text-xs"
+          data-testid="equilibrium-cta"
+        >
+          <Link to="/diabete/equilibrium">Pourquoi maintenant&nbsp;? →</Link>
+        </Button>
+      </div>
     </section>
   );
 }

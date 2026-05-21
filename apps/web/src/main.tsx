@@ -15,6 +15,7 @@ import GlycemiaListPage from '@/pages/glycemia-list';
 import GlycemiaNewPage from '@/pages/glycemia-new';
 import DiabetePlanUrgencePage from '@/pages/diabete-plan-urgence';
 import SymptomsNewPage from '@/pages/symptoms-new';
+import EquilibriumPage from '@/pages/equilibrium';
 import AppHome from '@/pages/app';
 import './styles/index.css';
 
@@ -78,6 +79,14 @@ createRoot(rootElement).render(
               element={
                 <ProtectedRoute>
                   <SymptomsNewPage />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/diabete/equilibrium"
+              element={
+                <ProtectedRoute>
+                  <EquilibriumPage />
                 </ProtectedRoute>
               }
             />
