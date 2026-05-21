@@ -76,4 +76,10 @@ test.describe('auth UI', () => {
     await expect(page).toHaveURL(/\/login$/);
     await expect(page.getByTestId('login-form')).toBeVisible();
   });
+
+  test('protected /diabete/equilibrium redirects to /login when signed out', async ({ page }) => {
+    await page.goto('/diabete/equilibrium');
+    await expect(page).toHaveURL(/\/login$/);
+    await expect(page.getByTestId('login-form')).toBeVisible();
+  });
 });
