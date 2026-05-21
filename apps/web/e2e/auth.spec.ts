@@ -91,4 +91,10 @@ test.describe('auth UI', () => {
     await page.goto('/measurements/hba1c/new');
     await expect(page).toHaveURL(/\/login$/);
   });
+
+  test('protected /diabete/rapport redirects to /login when signed out', async ({ page }) => {
+    await page.goto('/diabete/rapport');
+    await expect(page).toHaveURL(/\/login$/);
+    await expect(page.getByTestId('login-form')).toBeVisible();
+  });
 });

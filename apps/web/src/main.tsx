@@ -18,6 +18,7 @@ import HbA1cNewPage from '@/pages/hba1c-new';
 import DiabetePlanUrgencePage from '@/pages/diabete-plan-urgence';
 import SymptomsNewPage from '@/pages/symptoms-new';
 import EquilibriumPage from '@/pages/equilibrium';
+import RapportDiabetePage from '@/pages/rapport-diabete';
 import AppHome from '@/pages/app';
 import './styles/index.css';
 
@@ -105,6 +106,14 @@ createRoot(rootElement).render(
               element={
                 <ProtectedRoute>
                   <EquilibriumPage />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/diabete/rapport"
+              element={
+                <ProtectedRoute>
+                  <RapportDiabetePage />
                 </ProtectedRoute>
               }
             />

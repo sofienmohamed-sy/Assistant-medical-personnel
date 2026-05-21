@@ -8,3 +8,4 @@ export * from './fiches';
 export * from './emergency-plan';
 export * from './symptoms';
 export * from './equilibrium';
+export * from './rapport';
