@@ -13,6 +13,8 @@ import OnboardingPage from '@/pages/onboarding';
 import PathologiesPage from '@/pages/pathologies';
 import GlycemiaListPage from '@/pages/glycemia-list';
 import GlycemiaNewPage from '@/pages/glycemia-new';
+import HbA1cListPage from '@/pages/hba1c-list';
+import HbA1cNewPage from '@/pages/hba1c-new';
 import DiabetePlanUrgencePage from '@/pages/diabete-plan-urgence';
 import SymptomsNewPage from '@/pages/symptoms-new';
 import EquilibriumPage from '@/pages/equilibrium';
@@ -63,6 +65,22 @@ createRoot(rootElement).render(
               element={
                 <ProtectedRoute>
                   <GlycemiaNewPage />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/measurements/hba1c"
+              element={
+                <ProtectedRoute>
+                  <HbA1cListPage />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/measurements/hba1c/new"
+              element={
+                <ProtectedRoute>
+                  <HbA1cNewPage />
                 </ProtectedRoute>
               }
             />

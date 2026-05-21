@@ -82,4 +82,13 @@ test.describe('auth UI', () => {
     await expect(page).toHaveURL(/\/login$/);
     await expect(page.getByTestId('login-form')).toBeVisible();
   });
+
+  test('protected /measurements/hba1c routes redirect to /login when signed out', async ({
+    page,
+  }) => {
+    await page.goto('/measurements/hba1c');
+    await expect(page).toHaveURL(/\/login$/);
+    await page.goto('/measurements/hba1c/new');
+    await expect(page).toHaveURL(/\/login$/);
+  });
 });

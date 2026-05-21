@@ -217,6 +217,19 @@ function GlycemiaQuickSection({ treatmentProfile }: GlycemiaQuickSectionProps) {
       <Button asChild variant="secondary" className="w-full" data-testid="symptoms-new-cta">
         <Link to="/symptoms/new">Reporter un symptôme</Link>
       </Button>
+      <div className="flex flex-wrap gap-2" data-testid="hba1c-shortcut">
+        <Button asChild variant="outline" className="flex-1" data-testid="hba1c-new-cta">
+          <Link to="/measurements/hba1c/new">Saisir une HbA1c</Link>
+        </Button>
+        <Button
+          asChild
+          variant="link"
+          className="h-auto p-0 text-xs"
+          data-testid="hba1c-history-cta"
+        >
+          <Link to="/measurements/hba1c">Historique HbA1c →</Link>
+        </Button>
+      </div>
       <div className="flex flex-wrap items-center justify-between gap-2 text-xs">
         <Button
           asChild
